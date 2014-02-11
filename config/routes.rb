@@ -16,6 +16,7 @@ MusicFeedApp::Application.routes.draw do
     get '/contact', to: 'static_pages#contact'
     get '/news', to: 'static_pages#news'
     post '/saveTimeSheets', to: 'welcome#saveTime'
+    post '/saveDayTimesheets', to: 'welcome#saveDayTime'
   
     resources :users
 # Example of regular route:

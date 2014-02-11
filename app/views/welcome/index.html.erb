@@ -30,7 +30,7 @@
                 <tr>
                   <th> Project Details</th>
                   <th> <input id="txtDate"/> </th>
-
+                  <th> <button type="button" class="btn btn-large btn-primary" id="add" ><span class="glyphicon glyphicon-plus"></span></button> </th>
                 </tr>
               </thead>
               <tbody>
@@ -45,10 +45,7 @@
                     <input id="today" name="today" type="text" placeholder="Hours" class="today form-control" />
                   </td>
                   <td>
-                    <button type="button" class="btn btn-success" id="save">Save</button>
-                  </td>
-                  <td>
-                    <button type="button" class="btn btn-large btn-primary" id="add" ><span class="glyphicon glyphicon-plus"></span></button>
+                    <input type="button" class="btn btn-success save-btn" id="save" value="Save"></input>
                   </td>
                 </tr>
               </tbody>
@@ -81,13 +78,77 @@
       // Add button functionality
       $("#add").click(function () {
         id++;
-        var master = $(this).parents("#timeTable");
-        var table = document.getElementById("timeTable");
+        var master = $(this).parents("#daytimeTable");
+        var table = document.getElementById("daytimeTable");
         var noOfRows = table.rows.length;
-        var rowHtml = "<tr id='lastRow'><td><select id='project"+ noOfRows +"' name='project'><option>Option one</option><option>Option two</option></select></td><td><input id='monday"+ noOfRows +"' name='today' type='text' placeholder='Hours' class='form-control' /></td></tr>";
+        var rowHtml = "<tr id='lastRow'>\n\
+                          <td><select id='project"+ noOfRows +"' name='project'><option value='1'>Option one</option><option value='2'>Option two</option></select></td>\n\
+                          <td><input id='today"+ noOfRows +"' name='today' type='text' placeholder='Hours' class='today form-control'/></td>\n\
+                          <td><input type='button' class='btn btn-success save-btn' id='save' value='Save'></input></td>\n\
+                      </tr>";
         master.find("tbody").append(rowHtml);
+        $(".save-btn").last().click(function(){
+            input =  $(this);
+            var todayValue = $("#txtDate").val();
+            var ip1 = input.parent().prev().children('input');
+            var sp1 = input.parent().prev().prev().children('select');
+            if(input.attr('value') == "Edit"){
+              input.attr('value', "Save");
+              ip1.attr('disabled',false);
+              sp1.attr('disabled',false);
+            }
+            else{
+                var hrs = ip1.val();
+                var prj = sp1.val();
+                dataStr = "project=" + prj + "&today=" + todayValue + "&hours=" + hrs;
+                $.ajax({
+                  method: 'POST',
+                  url: '/saveDayTimesheets',
+                  data : dataStr,
+                  success: function(dt){
+                    alert(dt);
+                    ip1.attr('disabled',true);
+                    sp1.attr('disabled',true);
+                    input.attr('value','Edit');
+                  }
+                });
+            }
+        });
       });
+
+      $(".save-btn").click(function(){
+            
+            input =  $(this);
+            var todayValue = $("#txtDate").val();
+            var ip1 = input.parent().prev().children('input');
+            var sp1 = input.parent().prev().prev().children('select');
+            if(input.attr('value') == "Edit"){
+              input.attr('value', "Save");
+              ip1.attr('disabled',false);
+              sp1.attr('disabled',false);
+            }
+            else{
+                
+                var hrs = ip1.val();
+                var prj = sp1.val();
+                dataStr = "project=" + prj + "&today=" + todayValue + "&hours=" + hrs;
+                $.ajax({
+                  method: 'POST',
+                  url: '/saveDayTimesheets',
+                  data : dataStr,
+                  success: function(dt){
+                    alert(dt);
+                    ip1.attr('disabled',true);
+                    sp1.attr('disabled',true);
+                    input.attr('value','Edit');
+                  }
+                });
+            }
+        });
+
     });
+
+
   </script>
 
   <%#*<div class="container">%>
@@ -173,7 +234,7 @@
 
 
 <%#*<script>%>
-<%#*$(document).ready(function(){%>
+<%#*$(document).ready(function(){ %>
 <%#*$("#datepicker").datepicker({ showOtherMonths: true, selectOtherMonths: true,%>
 <%#*onSelect: function() {%>
 <%#*var mon = $(this).datepicker('getDate');%>
@@ -254,7 +315,16 @@
 <%#*$("#sundayHeader").html(sundayMonth + "/" + sun.getDate()  + "/" + sun.getFullYear());%>
 <%#*$("#sundayHidden").val(sundayMonth + "/" + sun.getDate()  + "/" + sun.getFullYear());%>
 
-
+<%#*var id = 0;%>
+<%#*// Add button functionality%>
+<%#*$("#add").click(function () {%>
+<%#*id++;%>
+<%#*var master = $(this).parents("#timeTable");%>
+<%#*var table = document.getElementById("timeTable");%>
+<%#*var noOfRows = table.rows.length;%>
+<%#*var rowHtml = "<tr id='lastRow'><td><label for='project'>Project </label><select id='project"+ noOfRows +"' name='project'><option>Option one</option><option>Option two</option></select></td><td><input id='monday"+ noOfRows +"' name='monday' type='text' placeholder='Hours' class='form-control' /></td><td><input id='tuesday"+ noOfRows +"' name='tuesday' type='text' placeholder='Hours' class='form-control' /></td><td><input id='wednesday"+ noOfRows +"' name='wednesday' type='text' placeholder='Hours' class='form-control'/></td><td><input id='thursday"+ noOfRows +"' name='thursday' type='text' placeholder='Hours' class='form-control' /></td><td><input id='friday"+ noOfRows +"' name='friday' type='text' placeholder='Hours' class='form-control' /></td><td><input id='saturday"+ noOfRows +"' name='saturday' type='text' placeholder='Hours' class='form-control' /></td><td><input id='sunday"+ noOfRows +"' name='sunday' type='text' placeholder='Hours' class='form-control' /></td><td><button type='button' class='btn btn-default' id='remove'>Remove</button></td></tr>";%>
+<%#*master.find("tbody").append(rowHtml);%>
+<%#*});%>
 <%#*// Remove button functionality%>
 <%#*$(document).on("click", "#remove", function () {%>
 <%#*$(this).parents("tr").remove();%>

@@ -2,6 +2,22 @@ class WelcomeController < ApplicationController
   def index
   end
 
+  def saveDayTime
+    puts "********************************DAY TIME******************************"
+  if params[:today]
+    time = TimeTable.new
+    time.user_id = session[:user_id]
+    time.project_id = params[:prj]
+    time.date = params[:todayValue]
+    time.hours = params[:hrs]
+    time.save
+    end
+
+    render :text => "Saved successfully!!"
+  end
+
+
+
   def saveTime
     puts "************************tst******************"
     puts params.inspect
