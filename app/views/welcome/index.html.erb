@@ -1,5 +1,3 @@
-
-
 <% if session[:user_id] %>
   <%@user = User.find(session[:user_id]) %>
 
@@ -19,7 +17,6 @@
 
   <!-- **************************************************************************** -->
   <!-- DAY FUNCTIONALITY -->
-
   <div class="container">
     <div class="row">
       <div class="col-lg-4">
@@ -37,6 +34,7 @@
                 <tr id="lastRow">
                   <td>
                     <select id="project" name="project">
+                      <option value=''>Please Select</option>
                       <option value='1'>Option one</option>
                       <option value='2'>Option two</option>
                     </select>
@@ -46,6 +44,9 @@
                   </td>
                   <td>
                     <input type="button" class="btn btn-success save-btn" id="save" value="Save"></input>
+                  </td>
+                  <td>
+                    <input type="button" class="btn btn-large btn-danger" id="remove" value="Remove"></input>
                   </td>
                 </tr>
               </tbody>
@@ -57,6 +58,7 @@
     </div>
   </div>
 
+  <!-- Script for day functionality -------------------------------------------------------------------- --->
   <script>
     $(document).ready(function(){
       var months = [ "January", "February", "March", "April", "May", "June",
@@ -66,86 +68,125 @@
           var selectedDate = $("#txtDate").datepicker('getDate');
           var selectedMonthName = months[selectedDate.getMonth()];
           $("#currentMonth").html(selectedMonthName);
-          //alert(selectedMonthName);
         }
       });
       $('#txtDate').datepicker('setDate', 'today');
       var toDayDate = $("#txtDate").datepicker('getDate');
       var todayMonthName = months[toDayDate.getMonth()];
       $("#currentMonth").html(todayMonthName);
-
+      
       var id = 0;
-      // Add button functionality
       $("#add").click(function () {
         id++;
         var master = $(this).parents("#daytimeTable");
         var table = document.getElementById("daytimeTable");
         var noOfRows = table.rows.length;
         var rowHtml = "<tr id='lastRow'>\n\
-                          <td><select id='project"+ noOfRows +"' name='project'><option value='1'>Option one</option><option value='2'>Option two</option></select></td>\n\
+                          <td><select id='project"+ noOfRows +"' name='project'><option value=''>Please Select</option><option value='1'>Option one</option><option value='2'>Option two</option></select></td>\n\
                           <td><input id='today"+ noOfRows +"' name='today' type='text' placeholder='Hours' class='today form-control'/></td>\n\
                           <td><input type='button' class='btn btn-success save-btn' id='save' value='Save'></input></td>\n\
+                          <td><input type='button' class='btn btn-large btn-danger' id='remove' value='Remove'></input></td>                     \n\
                       </tr>";
         master.find("tbody").append(rowHtml);
         $(".save-btn").last().click(function(){
-            input =  $(this);
-            var todayValue = $("#txtDate").val();
-            var ip1 = input.parent().prev().children('input');
-            var sp1 = input.parent().prev().prev().children('select');
-            if(input.attr('value') == "Edit"){
-              input.attr('value', "Save");
-              ip1.attr('disabled',false);
-              sp1.attr('disabled',false);
+          input =  $(this);
+          var todayValue = $("#txtDate").val();
+          var ip1 = input.parent().prev().children('input');
+          var sp1 = input.parent().prev().prev().children('select');
+          if(input.attr('value') == "Edit"){
+            input.attr('value', "Save");
+            ip1.attr('disabled',false);
+            sp1.attr('disabled',false);
+          }
+          else{
+            if(ip1.val() == '' || ip1.val() == undefined){
+                  alert("Please enter the no. of hours");
+                  return false;
+                }
+            if(sp1.val() == '' || sp1.val() == undefined){
+              alert("Please select the project");
+              return false;
             }
-            else{
-                var hrs = ip1.val();
-                var prj = sp1.val();
-                dataStr = "project=" + prj + "&today=" + todayValue + "&hours=" + hrs;
-                $.ajax({
-                  method: 'POST',
-                  url: '/saveDayTimesheets',
-                  data : dataStr,
-                  success: function(dt){
-                    alert(dt);
-                    ip1.attr('disabled',true);
-                    sp1.attr('disabled',true);
-                    input.attr('value','Edit');
-                  }
-                });
+            var svC = confirm("Are you sure want to save the changes?");
+            if(svC == true){
+              var hrs = ip1.val();
+              var prj = sp1.val();
+              dataStr = "project=" + prj + "&today=" + todayValue + "&hours=" + hrs;
+              $.ajax({
+                method: 'POST',
+                url: '/saveDayTimesheets',
+                data : dataStr,
+                success: function(dt){
+                  alert(dt);
+                  ip1.attr('disabled',true);
+                  sp1.attr('disabled',true);
+                  input.attr('value','Edit');
+                }
+              });
             }
+          }
         });
       });
 
       $(".save-btn").click(function(){
             
-            input =  $(this);
-            var todayValue = $("#txtDate").val();
-            var ip1 = input.parent().prev().children('input');
-            var sp1 = input.parent().prev().prev().children('select');
-            if(input.attr('value') == "Edit"){
-              input.attr('value', "Save");
-              ip1.attr('disabled',false);
-              sp1.attr('disabled',false);
-            }
-            else{
-                
-                var hrs = ip1.val();
-                var prj = sp1.val();
-                dataStr = "project=" + prj + "&today=" + todayValue + "&hours=" + hrs;
-                $.ajax({
-                  method: 'POST',
-                  url: '/saveDayTimesheets',
-                  data : dataStr,
-                  success: function(dt){
-                    alert(dt);
-                    ip1.attr('disabled',true);
-                    sp1.attr('disabled',true);
-                    input.attr('value','Edit');
-                  }
-                });
-            }
-        });
+        input =  $(this);
+        var todayValue = $("#txtDate").val();
+        var ip1 = input.parent().prev().children('input');
+        var sp1 = input.parent().prev().prev().children('select');
+        
 
+
+              if(input.attr('value') == "Edit"){
+                input.attr('value', "Save");
+                ip1.attr('disabled',false);
+                sp1.attr('disabled',false);
+              }
+              else{
+                if(ip1.val() == '' || ip1.val() == undefined){
+                  alert("Please enter the no. of hours");
+                  return false;
+                }
+                if(sp1.val() == '' || sp1.val() == undefined){
+                  alert("Please select the project");
+                  return false;
+                }
+                var svC = confirm("Are you sure want to save the changes?");
+                if(svC == true){
+                    var hrs = ip1.val();
+                    var prj = sp1.val();
+                    dataStr = "project=" + prj + "&today=" + todayValue + "&hours=" + hrs;
+                    $.ajax({
+                      method: 'POST',
+                      url: '/saveDayTimesheets',
+                      data : dataStr,
+                      success: function(dt){
+                        alert(dt);
+                        ip1.attr('disabled',true);
+                        sp1.attr('disabled',true);
+                        input.attr('value','Edit');
+                      }
+                    });
+                }
+          }
+        
+      });
+      // Remove button functionality
+      $(document).on("click", "#remove", function () {
+        $(this).parents("tr").remove();
+      });
+
+      <%#*$.ajax({%>
+        <%#*url: '/load_today_data',%>
+        <%#*method: 'GET',%>
+        <%#*dataString : "toDay"+ toDayDate,%>
+        <%#*success: function(data){%>
+          <%#*$("#daytimeTable").append(data);%>
+        <%#*},%>
+        <%#*failure: function(){%>
+          <%#*alert("Unable to load the today values.");%>
+        <%#*}%>
+      <%#*});%>
     });
 
 

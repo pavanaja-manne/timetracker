@@ -74,4 +74,10 @@ class WelcomeController < ApplicationController
     render :text => "saved successfully"
   end
 
+  def loadToDay
+    puts params.inspect
+
+    #render :html => "loadToDay", :layout => false
+  end
+
 end

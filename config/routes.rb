@@ -5,6 +5,7 @@ MusicFeedApp::Application.routes.draw do
   # You can have the root of your site routed with "root"
     get 'welcome/index' => 'welcome#index'
     root 'sessions#new'
+    get '/load_today_data', to: 'welcome#loadToDay'
     resources :sessions, only: [:new, :create, :destroy]
     get '/registration' => 'registrations#new'
     match '/auth/:provider/callback' => 'sessions#create' , via: [:get, :post]
@@ -17,6 +18,7 @@ MusicFeedApp::Application.routes.draw do
     get '/news', to: 'static_pages#news'
     post '/saveTimeSheets', to: 'welcome#saveTime'
     post '/saveDayTimesheets', to: 'welcome#saveDayTime'
+    
   
     resources :users
 # Example of regular route:
