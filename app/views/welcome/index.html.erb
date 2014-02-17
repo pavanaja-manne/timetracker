@@ -21,7 +21,7 @@
     <div class="row">
       <div class="col-lg-4">
         <form role="dayform" id="dayForm">
-          <table style="position: center" class="table table-striped table-bordered" id="daytimeTable">
+          <table class="table table-striped table-bordered" id="daytimeTable">
             <div class="form-group span8">
               <thead>
                 <tr>
@@ -31,24 +31,45 @@
                 </tr>
               </thead>
               <tbody>
-                <tr id="lastRow">
-                  <td>
-                    <select id="project" name="project">
-                      <option value=''>Please Select</option>
-                      <option value='1'>Option one</option>
-                      <option value='2'>Option two</option>
-                    </select>
-                  </td>
-                  <td>
-                    <input id="today" name="today" type="text" placeholder="Hours" class="today form-control" />
-                  </td>
-                  <td>
-                    <input type="button" class="btn btn-success save-btn" id="save" value="Save"></input>
-                  </td>
-                  <td>
-                    <input type="button" class="btn btn-large btn-danger" id="remove" value="Remove"></input>
-                  </td>
-                </tr>
+                <% if !@todayRecs.empty? %>
+                  <% @todayRecs.each do |t| %>
+                    <tr id="lastRow">
+                      <td>
+                        <%= select_tag 'project', options_for_select([["Please Select" , "" ],["Option One","1"],["Option Two","2"] ,["Option Three","3"]],t.project_id), :disabled => true, :class => "project" %>
+                        <%=  hidden_field_tag 'hiddenId',t.id, :id => 'hiddenId'%>
+                      </td>
+                      <td>
+                        <input id="today" name="today" type="text" placeholder="Hours" disabled="true" class="today form-control" value=<%= t.hours %>  />
+                      </td>
+                      <td>
+                        <input type="button" class="btn btn-success save-btn" id="save" value="Edit"></input>
+                      </td>
+                      <td>
+                        <input type="button" class="btn btn-large btn-danger remove-btn" id="remove" value="Remove"></input>
+                      </td>
+                    </tr>
+                  <% end %>
+                <% else %>
+                  <tr id="lastRow">
+                    <td>
+                      <input type="hidden" id="hiddenId" name="hiddenId" />
+                      <select id="project" name="project" class="project" >
+                        <option value=''>Please Select</option>
+                        <option value='1'>Option one</option>
+                        <option value='2'>Option two</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input id="today" name="today" type="text" placeholder="Hours" class="today form-control" />
+                    </td>
+                    <td>
+                      <input type="button" class="btn btn-success save-btn" id="save" value="Save"></input>
+                    </td>
+                    <td>
+                      <input type="button" class="btn btn-large btn-danger remove-btn" id="remove" value="Remove"></input>
+                    </td>
+                  </tr>
+                <% end %>
               </tbody>
 
             </div>
@@ -59,8 +80,11 @@
   </div>
 
   <!-- Script for day functionality -------------------------------------------------------------------- --->
-  <script>
+  <script type="text/javascript">
     $(document).ready(function(){
+      $('.project').each(function() {
+          $(this).data('lastValue', $(this).val());
+      });
       var months = [ "January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December" ];
       $("#txtDate").datepicker({ showOtherMonths: true, selectOtherMonths: true,
@@ -68,13 +92,26 @@
           var selectedDate = $("#txtDate").datepicker('getDate');
           var selectedMonthName = months[selectedDate.getMonth()];
           $("#currentMonth").html(selectedMonthName);
+          $.ajax({
+            url: '/load_today_data',
+            method: 'GET',
+            data : "toDay="+ $("#txtDate").val(),
+            success: function(data){
+              $("#daytimeTable").find("tr:gt(0)").remove();
+              $("#daytimeTable").find("tbody").append(data);
+            },
+            failure: function(){
+              alert("Unable to load the today values.");
+            }
+          });
+
         }
+        
       });
       $('#txtDate').datepicker('setDate', 'today');
       var toDayDate = $("#txtDate").datepicker('getDate');
       var todayMonthName = months[toDayDate.getMonth()];
       $("#currentMonth").html(todayMonthName);
-      
       var id = 0;
       $("#add").click(function () {
         id++;
@@ -82,10 +119,10 @@
         var table = document.getElementById("daytimeTable");
         var noOfRows = table.rows.length;
         var rowHtml = "<tr id='lastRow'>\n\
-                          <td><select id='project"+ noOfRows +"' name='project'><option value=''>Please Select</option><option value='1'>Option one</option><option value='2'>Option two</option></select></td>\n\
+                          <td><input type='hidden' id='hiddenId' name='hiddenId' /><select id='project"+ noOfRows +"' name='project' class='project'><option value=''>Please Select</option><option value='1'>Option one</option><option value='2'>Option two</option></select></td>\n\
                           <td><input id='today"+ noOfRows +"' name='today' type='text' placeholder='Hours' class='today form-control'/></td>\n\
                           <td><input type='button' class='btn btn-success save-btn' id='save' value='Save'></input></td>\n\
-                          <td><input type='button' class='btn btn-large btn-danger' id='remove' value='Remove'></input></td>                     \n\
+                          <td><input type='button' class='btn btn-large btn-danger remove-btn' id='remove' value='Remove'></input></td>                     \n\
                       </tr>";
         master.find("tbody").append(rowHtml);
         $(".save-btn").last().click(function(){
@@ -93,6 +130,7 @@
           var todayValue = $("#txtDate").val();
           var ip1 = input.parent().prev().children('input');
           var sp1 = input.parent().prev().prev().children('select');
+          var hd1 = input.parent().prev().prev().children('input');
           if(input.attr('value') == "Edit"){
             input.attr('value', "Save");
             ip1.attr('disabled',false);
@@ -100,9 +138,9 @@
           }
           else{
             if(ip1.val() == '' || ip1.val() == undefined){
-                  alert("Please enter the no. of hours");
-                  return false;
-                }
+              alert("Please enter the no. of hours");
+              return false;
+            }
             if(sp1.val() == '' || sp1.val() == undefined){
               alert("Please select the project");
               return false;
@@ -111,13 +149,14 @@
             if(svC == true){
               var hrs = ip1.val();
               var prj = sp1.val();
-              dataStr = "project=" + prj + "&today=" + todayValue + "&hours=" + hrs;
+              dataStr = "project=" + prj + "&today=" + todayValue + "&hours=" + hrs +"&id="+hd1.val();
               $.ajax({
                 method: 'POST',
                 url: '/saveDayTimesheets',
                 data : dataStr,
                 success: function(dt){
-                  alert(dt);
+                  alert(dt.msg);
+                  hd1.val(dt.id)
                   ip1.attr('disabled',true);
                   sp1.attr('disabled',true);
                   input.attr('value','Edit');
@@ -126,261 +165,150 @@
             }
           }
         });
-      });
 
+        $(".remove-btn").last().click(function(){
+            input =  $(this);
+            var hd1 = input.parent().prev().prev().prev().children('input').val();            
+            var svC = confirm("Are you sure want to delete?");
+            if(svC == true){
+              if(hd1 == '' || hd1== "" || hd1 == undefined){
+                input.parents("tr").remove();
+              }
+              else{
+                dataStr = "id="+hd1;
+                 $.ajax({
+                  method: 'POST',
+                  url: '/deleteDayTimesheets',
+                  data : dataStr,
+                  success: function(dt){
+                    alert(dt.msg);
+                    if(dt.deleted == true)
+                      input.parents("tr").remove();
+                  }
+                });
+              }
+            }
+          });
+          $(".project").last().change(function(){
+                select_box_old_val = $(this).data("lastValue");
+                select_box_new_val = $(this).val();
+                exist = false;
+                console.log(select_box_old_val);
+                $('.project').not(this).each(function(){
+                  if(exist == false){
+                    console.log(select_box_new_val);
+                    if($(this).val() == select_box_new_val){
+                      //select_box.val(select_box.data("lastVal"));
+                      exist = true;
+                      alert("There is already timesheet for the selected project.You can update that one");
+                    }
+                  }
+                });
+                if(exist == true){
+                  $(this).val($(this).data("lastValue"));
+                }
+                else{
+                  $(this).data("lastValue",$(this).val());
+                }
+              });
+
+
+      });
       $(".save-btn").click(function(){
-            
         input =  $(this);
         var todayValue = $("#txtDate").val();
         var ip1 = input.parent().prev().children('input');
         var sp1 = input.parent().prev().prev().children('select');
-        
-
-
-              if(input.attr('value') == "Edit"){
-                input.attr('value', "Save");
-                ip1.attr('disabled',false);
-                sp1.attr('disabled',false);
-              }
-              else{
-                if(ip1.val() == '' || ip1.val() == undefined){
-                  alert("Please enter the no. of hours");
-                  return false;
-                }
-                if(sp1.val() == '' || sp1.val() == undefined){
-                  alert("Please select the project");
-                  return false;
-                }
-                var svC = confirm("Are you sure want to save the changes?");
-                if(svC == true){
-                    var hrs = ip1.val();
-                    var prj = sp1.val();
-                    dataStr = "project=" + prj + "&today=" + todayValue + "&hours=" + hrs;
-                    $.ajax({
-                      method: 'POST',
-                      url: '/saveDayTimesheets',
-                      data : dataStr,
-                      success: function(dt){
-                        alert(dt);
-                        ip1.attr('disabled',true);
-                        sp1.attr('disabled',true);
-                        input.attr('value','Edit');
-                      }
-                    });
-                }
+        var hd1 = input.parent().prev().prev().children('input');
+        if(input.attr('value') == "Edit"){
+          input.attr('value', "Save");
+          ip1.attr('disabled',false);
+          sp1.attr('disabled',false);
+        }
+        else{
+          if(ip1.val() == '' || ip1.val() == undefined){
+            alert("Please enter the no. of hours");
+            return false;
           }
+          if(sp1.val() == '' || sp1.val() == undefined){
+            alert("Please select the project");
+            return false;
+          }
+          var svC = confirm("Are you sure want to save the changes?");
+          if(svC == true){
+            var hrs = ip1.val();
+            var prj = sp1.val();
+            dataStr = "project=" + prj + "&today=" + todayValue + "&hours=" + hrs + "&id="+ hd1.val();
+            $.ajax({
+              method: 'POST',
+              url: '/saveDayTimesheets',
+              data : dataStr,
+              success: function(dt){
+                alert(dt.msg);
+                ip1.attr('disabled',true);
+                sp1.attr('disabled',true);
+                input.attr('value','Edit');
+              }
+            });
+          }
+        }
         
       });
-      // Remove button functionality
-      $(document).on("click", "#remove", function () {
-        $(this).parents("tr").remove();
+      $(".remove-btn").click(function(){
+        input =  $(this);
+        var hd1 = input.parent().prev().prev().prev().children('input').val();
+        console.log(hd1);
+        var svC = confirm("Are you sure want to delete?");
+        if(svC == true){
+          if(hd1 == '' || hd1== "" || hd1 == undefined){
+            input.parents("tr").remove();
+          }
+          else{
+            dataStr = "id="+hd1;
+             $.ajax({
+              method: 'POST',
+              url: '/deleteDayTimesheets',
+              data : dataStr,
+              success: function(dt){
+                alert(dt.msg);
+                if(dt.deleted == true)
+                  input.parents("tr").remove();
+              }
+            });
+          }
+        }
+        
       });
-
-      <%#*$.ajax({%>
-        <%#*url: '/load_today_data',%>
-        <%#*method: 'GET',%>
-        <%#*dataString : "toDay"+ toDayDate,%>
-        <%#*success: function(data){%>
-          <%#*$("#daytimeTable").append(data);%>
-        <%#*},%>
-        <%#*failure: function(){%>
-          <%#*alert("Unable to load the today values.");%>
-        <%#*}%>
+      <%#*// Remove button functionality%>
+      <%#*$(document).on("click", "#remove", function () {%>
+        <%#*$(this).parents("tr").remove();%>
       <%#*});%>
+
+
+        $(".project").change(function(){
+          select_box_old_val = $(this).data("lastValue");
+          select_box_new_val = $(this).val();
+          exist = false;
+          console.log(select_box_old_val);
+          $('.project').not(this).each(function(){
+            if(exist == false){
+              console.log(select_box_new_val);
+              if($(this).val() == select_box_new_val){
+                //select_box.val(select_box.data("lastVal"));
+                exist = true;
+                alert("There is already timesheet for the selected project.You can update that one");
+              }
+            }
+          });
+          if(exist == true){
+            $(this).val($(this).data("lastValue"));
+          }
+          else{
+            $(this).data("lastValue",$(this).val());
+          }
+        });
     });
 
 
   </script>
-
-  <%#*<div class="container">%>
-  <%#*<!-- Datepicker -->%>
-  <%#*<div class="pull-right">%>
-  <%#*Date:%>
-  <%#*<input type="text" id="datepicker" placeholder="Date"/>%>
-  <%#*</div>%>
-
-
-  <!-- Table for hourly input -->
-  <%#*<div class="row">%>
-  <%#*<div class="col-lg-12">%>
-  <%#*<form role="form" id="myForm">%>
-  <%#*<table class="table table-striped table-bordered" id="timeTable">%>
-  <%#*<div class="form-group">%>
-  <%#*<thead>%>
-  <%#*<tr>%>
-  <%#*<th>%>
-  <%#*<button type="button" class="btn btn-default" id="add">Add Row</button>%>
-  <%#*Project Details%>
-  <%#*</th>%>
-  <%#*<th>Monday<br/> <span id="mondayHeader" ></span> </th>%>
-  <%#*<th>Tuesday<br/> <span id="tuesdayHeader" ></span></th>%>
-  <%#*<th>Wednesday<br/> <span id="wednesdayHeader" ></span></th>%>
-  <%#*<th>Thursday<br/> <span id="thursdayHeader" ></span></th>%>
-  <%#*<th>Friday<br/> <span id="fridayHeader" ></span></th>%>
-  <%#*<th>Saturday<br/> <span id="saturdayHeader" ></span></th>%>
-  <%#*<th>Sunday<br/> <span id="sundayHeader" ></span></th>%>
-  <%#*</tr>%>
-  <%#*</thead>%>
-  <%#*<tbody>%>
-  <%#*<tr id="lastRow">%>
-  <%#*<td>%>
-  <%#*<label for="project">Project </label>%>
-  <%#*<select id="project" name="project">%>
-  <%#*<option value='1'>Option one</option>%>
-  <%#*<option value='2'>Option two</option>%>
-  <%#*</select>%>
-  <%#*</td>%>
-  <%#*<td>%>
-  <%#*<input id="monday" name="monday" type="text" placeholder="Hours" class="monday form-control" /></td>%>
-  <%#*<td>%>
-  <%#*<input id="tuesday" name="tuesday" type="text" placeholder="Hours" class="tuesday form-control" /></td>%>
-  <%#*<td>%>
-  <%#*<input id="wednesday" name="wednesday" type="text" placeholder="Hours" class="wednesday form-control"/></td>%>
-  <%#*<td>%>
-  <%#*<input id="thursday" name="thursday" type="text" placeholder="Hours" class="thursday form-control" /></td>%>
-  <%#*<td>%>
-  <%#*<input id="friday" name="friday" type="text" placeholder="Hours" class="friday form-control" /></td>%>
-  <%#*<td>%>
-  <%#*<input id="saturday" name="saturday" type="text" placeholder="Hours" class="saturday form-control" /></td>%>
-  <%#*<td>%>
-  <%#*<input id="sunday" name="sunday" type="text" placeholder="Hours" class="sunday form-control" /></td>%>
-  <%#*<td align="center" style="text-align:center;float:center;">%>
-  <%#*<button type="button" class="btn btn-success" id="save">Save</button>%>
-  <%#*</td>%>
-  <%#*<td>%>
-  <%#*<button type="button" class="btn btn-default" id="remove">Remove</button></td>%>
-  <%#*</tr>%>
-  <%#*</tbody>%>
-  <%#*</table>%>
-  <%#*<input type="hidden" id="hiddenMonday" name="hiddenMonday" />%>
-  <%#*<input type="hidden" id="hiddenTuesday" name="hiddenTuesday" />%>
-  <%#*<input type="hidden" id="wednesdayHidden" name="wednesdayHidden" />%>
-  <%#*<input type="hidden" id="thursdayHidden" name="thursdayHidden" />%>
-  <%#*<input type="hidden" id="fridayHidden" name="fridayHidden" />%>
-  <%#*<input type="hidden" id="saturdayHidden" name="saturdayHidden" />%>
-  <%#*<input type="hidden" id="sundayHidden" name="sundayHidden" />%>
-  <%#*</form>%>
-  <%#*<table>%>
-  <%#*<tbody>%>
-  <%#*<tr>%>
-  <%#*<td align="center" style="text-align:center;float:center;">%>
-  <%#*<button type="button" class="btn-large btn-success" id="save">Save</button>%>
-  <%#*</td>%>
-  <%#*</tr>%>
-  <%#*</tbody>%>
-  <%#*</table>%>
-  <%#*</div>%>
 <% end %>
-
-
-
-<%#*<script>%>
-<%#*$(document).ready(function(){ %>
-<%#*$("#datepicker").datepicker({ showOtherMonths: true, selectOtherMonths: true,%>
-<%#*onSelect: function() {%>
-<%#*var mon = $(this).datepicker('getDate');%>
-<%#*mon.setDate(mon.getDate() + 1 - (mon.getDay() || 7));%>
-<%#*var tues = new Date(mon.getTime());%>
-<%#*tues.setDate(tues.getDate() + 1);%>
-<%#*var wed = new Date(mon.getTime());%>
-<%#*wed.setDate(wed.getDate() + 2);%>
-<%#*var thurs = new Date(mon.getTime());%>
-<%#*thurs.setDate(thurs.getDate() + 3);%>
-<%#*var fri = new Date(mon.getTime());%>
-<%#*fri.setDate(fri.getDate() + 4);%>
-<%#*var sat = new Date(mon.getTime());%>
-<%#*sat.setDate(sat.getDate() + 5);%>
-<%#*var sun = new Date(mon.getTime());%>
-<%#*sun.setDate(sun.getDate() + 6);%>
-
-<%#*var mondayMonth= mon.getMonth()+1;%>
-<%#*$("#mondayHeader").html(mondayMonth + "/" + mon.getDate()  + "/" + mon.getFullYear());%>
-
-<%#*var tuesdayMonth = tues.getMonth() + 1;%>
-<%#*$("#tuesdayHeader").html(tuesdayMonth + "/" + tues.getDate()  + "/" + tues.getFullYear());%>
-
-<%#*var wednesdayMonth = wed.getMonth() + 1;%>
-<%#*$("#wednesdayHeader").html(wednesdayMonth + "/" + wed.getDate()  + "/" + wed.getFullYear());%>
-
-<%#*var thursdayMonth = thurs.getMonth() + 1;%>
-<%#*$("#thursdayHeader").html(thursdayMonth + "/" + thurs.getDate()  + "/" + thurs.getFullYear());%>
-<%#*var fridayMonth = fri.getMonth() + 1;%>
-<%#*$("#fridayHeader").html(fridayMonth + "/" + fri.getDate()  + "/" + fri.getFullYear());%>
-<%#*var saturdayMonth = sat.getMonth() + 1;%>
-<%#*$("#saturdayHeader").html(saturdayMonth + "/" + sat.getDate()  + "/" + sat.getFullYear());%>
-<%#*var sundayMonth = sun.getMonth() + 1;%>
-<%#*$("#sundayHeader").html(sundayMonth + "/" + sun.getDate()  + "/" + sun.getFullYear());%>
-<%#*// alert(mon + ' ' + sun);%>
-<%#*}%>
-<%#*});%>
-<%#*$("#datepicker").datepicker("setDate", "today");%>
-<%#*var selectedDate = $("#datepicker").datepicker("getDate");%>
-<%#*var mon = selectedDate;%>
-<%#*mon.setDate(mon.getDate() + 1 - (mon.getDay() || 7));%>
-<%#*var tues = new Date(mon.getTime());%>
-<%#*tues.setDate(tues.getDate() + 1);%>
-<%#*var wed = new Date(mon.getTime());%>
-<%#*wed.setDate(wed.getDate() + 2);%>
-<%#*var thurs = new Date(mon.getTime());%>
-<%#*thurs.setDate(thurs.getDate() + 3);%>
-<%#*var fri = new Date(mon.getTime());%>
-<%#*fri.setDate(fri.getDate() + 4);%>
-<%#*var sat = new Date(mon.getTime());%>
-<%#*sat.setDate(sat.getDate() + 5);%>
-<%#*var sun = new Date(mon.getTime());%>
-<%#*sun.setDate(sun.getDate() + 6);%>
-
-<%#*var mondayMonth= mon.getMonth()+1;%>
-<%#*$("#mondayHeader").html(mondayMonth + "/" + mon.getDate()  + "/" + mon.getFullYear());%>
-<%#*$("#hiddenMonday").val(mondayMonth + "/" + mon.getDate()  + "/" + mon.getFullYear())%>
-<%#*var tuesdayMonth = tues.getMonth() + 1;%>
-<%#*$("#tuesdayHeader").html(tuesdayMonth + "/" + tues.getDate()  + "/" + tues.getFullYear());%>
-<%#*$("#hiddenTuesday").val(tuesdayMonth + "/" + tues.getDate()  + "/" + tues.getFullYear());%>
-
-
-<%#*var wednesdayMonth = wed.getMonth() + 1;%>
-<%#*$("#wednesdayHeader").html(wednesdayMonth + "/" + wed.getDate()  + "/" + wed.getFullYear());%>
-<%#*$("#wednesdayHidden").val(wednesdayMonth + "/" + wed.getDate()  + "/" + wed.getFullYear());%>
-
-<%#*var thursdayMonth = thurs.getMonth() + 1;%>
-<%#*$("#thursdayHeader").html(thursdayMonth + "/" + thurs.getDate()  + "/" + thurs.getFullYear());%>
-<%#*$("#thursdayHidden").val(thursdayMonth + "/" + thurs.getDate()  + "/" + thurs.getFullYear());%>
-<%#*var fridayMonth = fri.getMonth() + 1;%>
-<%#*$("#fridayHeader").html(fridayMonth + "/" + fri.getDate()  + "/" + fri.getFullYear());%>
-<%#*$("#fridayHidden").val(fridayMonth + "/" + fri.getDate()  + "/" + fri.getFullYear());%>
-
-<%#*var saturdayMonth = sat.getMonth() + 1;%>
-<%#*$("#saturdayHeader").html(saturdayMonth + "/" + sat.getDate()  + "/" + sat.getFullYear());%>
-<%#*$("#saturdayHidden").val(saturdayMonth + "/" + sat.getDate()  + "/" + sat.getFullYear());%>
-<%#*var sundayMonth = sun.getMonth() + 1;%>
-<%#*$("#sundayHeader").html(sundayMonth + "/" + sun.getDate()  + "/" + sun.getFullYear());%>
-<%#*$("#sundayHidden").val(sundayMonth + "/" + sun.getDate()  + "/" + sun.getFullYear());%>
-
-<%#*var id = 0;%>
-<%#*// Add button functionality%>
-<%#*$("#add").click(function () {%>
-<%#*id++;%>
-<%#*var master = $(this).parents("#timeTable");%>
-<%#*var table = document.getElementById("timeTable");%>
-<%#*var noOfRows = table.rows.length;%>
-<%#*var rowHtml = "<tr id='lastRow'><td><label for='project'>Project </label><select id='project"+ noOfRows +"' name='project'><option>Option one</option><option>Option two</option></select></td><td><input id='monday"+ noOfRows +"' name='monday' type='text' placeholder='Hours' class='form-control' /></td><td><input id='tuesday"+ noOfRows +"' name='tuesday' type='text' placeholder='Hours' class='form-control' /></td><td><input id='wednesday"+ noOfRows +"' name='wednesday' type='text' placeholder='Hours' class='form-control'/></td><td><input id='thursday"+ noOfRows +"' name='thursday' type='text' placeholder='Hours' class='form-control' /></td><td><input id='friday"+ noOfRows +"' name='friday' type='text' placeholder='Hours' class='form-control' /></td><td><input id='saturday"+ noOfRows +"' name='saturday' type='text' placeholder='Hours' class='form-control' /></td><td><input id='sunday"+ noOfRows +"' name='sunday' type='text' placeholder='Hours' class='form-control' /></td><td><button type='button' class='btn btn-default' id='remove'>Remove</button></td></tr>";%>
-<%#*master.find("tbody").append(rowHtml);%>
-<%#*});%>
-<%#*// Remove button functionality%>
-<%#*$(document).on("click", "#remove", function () {%>
-<%#*$(this).parents("tr").remove();%>
-<%#*});%>
-<%#*$("#save").click(function(){%>
-<%#*var datastring = $("#myForm").serialize();%>
-<%#*$.ajax({%>
-<%#*type: "POST",%>
-<%#*url: "/saveTimeSheets",%>
-<%#*data: datastring,%>
-<%#*success: function(data) {%>
-<%#*alert(data);%>
-<%#*}%>
-<%#*});%>
-<%#*})%>
-<%#*});%>
-<%#*</script>%>
-

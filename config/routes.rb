@@ -3,11 +3,12 @@ MusicFeedApp::Application.routes.draw do
   # See how all your routes lay out with "rake routes".
 
   # You can have the root of your site routed with "root"
-    get 'welcome/index' => 'welcome#index'
+    get 'welcome/index', to: 'welcome#index'
     root 'sessions#new'
-    get '/load_today_data', to: 'welcome#loadToDay'
     resources :sessions, only: [:new, :create, :destroy]
-    get '/registration' => 'registrations#new'
+    get '/load_today_data', to: 'welcome#loadToDay'
+    match '/deleteDayTimesheets', :to => 'welcome#deleteDayTimesheets', via: [:get, :post]
+    get '/registration', to: 'registrations#new'
     match '/auth/:provider/callback' => 'sessions#create' , via: [:get, :post]
     match "/auth/failure" => "sessions#failure", via: [:get, :post]
     get '/signin',  to: 'sessions#new'
@@ -18,6 +19,7 @@ MusicFeedApp::Application.routes.draw do
     get '/news', to: 'static_pages#news'
     post '/saveTimeSheets', to: 'welcome#saveTime'
     post '/saveDayTimesheets', to: 'welcome#saveDayTime'
+    get 'welcome/weekFunc', to: 'welcome#weekFunc'
     
   
     resources :users
