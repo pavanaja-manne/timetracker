@@ -3,6 +3,8 @@
 
   <div class="row-fluid">
     <header class="span12 hero-unit">
+      <%= javascript_include_tag "//www.google.com/jsapi", "chartkick" %>
+
       <h2>Hi <%= @user.name %>, Please Enter The Time Sheets For <span id="currentMonth"/> </h2>
     </header>
   </div>
@@ -31,11 +33,16 @@
                 </tr>
               </thead>
               <tbody>
+                <%selectArray = [["Please Select", ""]] %>
+                <%Project.find_each do |p|%>
+                <%selectArray << [p.name, p.id]%>
+                <%end%>
                 <% if !@todayRecs.empty? %>
                   <% @todayRecs.each do |t| %>
                     <tr id="lastRow">
                       <td>
-                        <%= select_tag 'project', options_for_select([["Please Select" , "" ],["Option One","1"],["Option Two","2"] ,["Option Three","3"]],t.project_id), :disabled => true, :class => "project" %>
+                   
+                       <%= select_tag 'project', options_for_select(selectArray,t.project_id), :disabled => true, :class => "project" %>
                         <%=  hidden_field_tag 'hiddenId',t.id, :id => 'hiddenId'%>
                       </td>
                       <td>
@@ -55,8 +62,9 @@
                       <input type="hidden" id="hiddenId" name="hiddenId" />
                       <select id="project" name="project" class="project" >
                         <option value=''>Please Select</option>
-                        <option value='1'>Option one</option>
-                        <option value='2'>Option two</option>
+                        <% Project.find_each do |projectrow| %>
+                        <option value='<%=projectrow.id%>'><%=projectrow.name%></option>
+                      	<%end%>
                       </select>
                     </td>
                     <td>
@@ -68,6 +76,7 @@
                     <td>
                       <input type="button" class="btn btn-large btn-danger remove-btn" id="remove" value="Remove"></input>
                     </td>
+                    <td> Hello <td>
                   </tr>
                 <% end %>
               </tbody>
@@ -78,6 +87,24 @@
       </div>
     </div>
   </div>
+
+<!-- Pie Chart -->
+<% projectHash = {} %>
+
+<% unless @todayRecs.empty? %>
+ 	<% @todayRecs.each do |t| %>
+ 		<% project = Project.find(t.project_id) %>
+ 		<% if projectHash.has_key?(project.name)%>
+ 			<% i = projectHash[project.name] %>
+ 			<% projectHash[project.name] = i + t.hours %>
+ 		<%else%>
+ 			<% projectHash[project.name] = t.hours %>
+ 		<%end%>
+ 	<%end%>
+<% end %> 	
+
+<%= pie_chart(projectHash) %>
+
 
   <!-- Script for day functionality -------------------------------------------------------------------- --->
   <script type="text/javascript">
@@ -310,5 +337,7 @@
     });
 
 
+
   </script>
-<% end %>
+  
+  <%end%>
