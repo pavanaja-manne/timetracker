@@ -21,6 +21,7 @@ ActiveRecord::Schema.define(version: 20140218233436) do
     t.datetime "updated_at",      null: false
   end
 
+<<<<<<< HEAD
   create_table "rails_admin_histories", force: true do |t|
     t.text     "message"
     t.string   "username"
@@ -28,12 +29,20 @@ ActiveRecord::Schema.define(version: 20140218233436) do
     t.string   "table"
     t.integer  "month",      limit: 2
     t.integer  "year",       limit: 5
+=======
+  create_table "projects", force: true do |t|
+    t.string   "name"
+    t.string   "category"
+>>>>>>> 36b479f87ee3ed93322a34b683a1c05b89ae208e
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
+<<<<<<< HEAD
   add_index "rails_admin_histories", ["item", "table", "month", "year"], name: "index_rails_admin_histories"
 
+=======
+>>>>>>> 36b479f87ee3ed93322a34b683a1c05b89ae208e
   create_table "time_tables", force: true do |t|
     t.integer  "user_id"
     t.integer  "project_id"

@@ -1,10 +1,13 @@
-
+<%selectArray = [["Please Select", ""]] %>
+<%Project.find_each do |p|%>
+<%selectArray << [p.name, p.id]%>
+<%end%>
 <% if !@todayRecs.empty? %>
   <% @todayRecs.each do |t| %>
     <tr id="lastRow">
       <td>
         <%=hidden_field_tag 'hiddenId', t.id%>
-        <%= select_tag 'project', options_for_select([["Please Select" , "" ],["Option One","1"],["Option Two","2"] ,["Option Three","3"]],t.project_id), :disabled => true, :class=> 'project' %>
+        <%= select_tag 'project', options_for_select(selectArray,t.project_id), :disabled => true, :class => "project" %>
       </td>
       <td>
         <input id="today" disabled="true" name="today" type="text" placeholder="Hours" class="today form-control" value=<%= t.hours %>  />
@@ -21,11 +24,12 @@
   <tr id="lastRow">
     <td>
       <input type="hidden" id="hiddenId" name="hiddenId" />
-      <select id="project" name="project" class="project">
-        <option value=''>Please Select</option>
-        <option value='1'>Option one</option>
-        <option value='2'>Option two</option>
-      </select>
+      <select id="project" name="project" class="project" >
+      <option value=''>Please Select</option>
+      <% Project.find_each do |projectrow| %>
+      <option value='<%=projectrow.id%>'><%=projectrow.name%></option>
+      <%end%>
+    </select>
     </td>
     <td>
       <input id="today" name="today" type="text" placeholder="Hours" class="today form-control" />

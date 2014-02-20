@@ -1,5 +1,6 @@
 class WelcomeController < ApplicationController
   before_filter :require_login
+  
   def index
     time = Time.new
     to_day = time.strftime("%m/%d/%Y")
@@ -119,7 +120,32 @@ class WelcomeController < ApplicationController
 
     render :json => data.to_json
 
+end
 
-  end
+	def createPieChart
+		   puts "********************************PIE CHART******************************"
+   		   puts params.inspect
+		   pieHash = {}        
+    	@pieRow = TimeTable.where(:date => params[:today],:user_id => session[:user_id] )
+
+		unless @pieRow.nil?
+			@pieRow.each do |t|
+				project = Project.find(t.project_id)
+				if pieHash.has_key?(project.name)
+					i = pieHash[project.name]
+					pieHash[project.name] = i + t.hours
+				else
+					pieHash[project.name] = t.hours
+				end
+			end
+		end
+			@initialPieHash = pieHash.to_json
+			render :json => pieHash.to_json
+		
+		
+	end
+
+	
+
 
 end

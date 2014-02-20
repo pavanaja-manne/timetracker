@@ -51,6 +51,10 @@ gem 'omniauth-identity'
 gem 'omniauth-instagram'
 
 
+#Pie Chart
+
+gem 'chartkick'
+gem 'groupdate'
 
 # Errors logging
 gem "airbrake"

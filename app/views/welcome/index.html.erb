@@ -3,7 +3,13 @@
 
   <div class="row-fluid" style="height:200px;">
     <header class="span12 hero-unit">
+<<<<<<< HEAD
       <h3>Hi <%= @user.name %>, Please Enter The Time Sheets For <span id="currentMonth"/> </h3>
+=======
+      <%= javascript_include_tag "//www.google.com/jsapi", "chartkick" %>
+
+      <h2>Hi <%= @user.name %>, Please Enter The Time Sheets For <span id="currentMonth"/> </h2>
+>>>>>>> 36b479f87ee3ed93322a34b683a1c05b89ae208e
     </header>
   </div>
 
@@ -42,11 +48,16 @@
                 </tr>
               </thead>
               <tbody>
+                <%selectArray = [["Please Select", ""]] %>
+                <%Project.find_each do |p|%>
+                <%selectArray << [p.name, p.id]%>
+                <%end%>
                 <% if !@todayRecs.empty? %>
                   <% @todayRecs.each do |t| %>
                     <tr id="lastRow">
                       <td>
-                        <%= select_tag 'project', options_for_select([["Please Select" , "" ],["Option One","1"],["Option Two","2"] ,["Option Three","3"]],t.project_id), :disabled => true, :class => "project" %>
+                   
+                       <%= select_tag 'project', options_for_select(selectArray,t.project_id), :disabled => true, :class => "project" %>
                         <%=  hidden_field_tag 'hiddenId',t.id, :id => 'hiddenId'%>
                       </td>
                       <td>
@@ -66,8 +77,9 @@
                       <input type="hidden" id="hiddenId" name="hiddenId" />
                       <select id="project" name="project" class="project" >
                         <option value=''>Please Select</option>
-                        <option value='1'>Option one</option>
-                        <option value='2'>Option two</option>
+                        <% Project.find_each do |projectrow| %>
+                        <option value='<%=projectrow.id%>'><%=projectrow.name%></option>
+                      	<%end%>
                       </select>
                     </td>
                     <td>
@@ -89,6 +101,12 @@
       </div>
     </div>
   </div>
+  
+
+
+<!-- Pie Chart -->
+		<div class="pieChart"><div id="chart-1" style="height: 300px;"></div></div>
+
 
   <!-- Script for day functionality -------------------------------------------------------------------- --->
   <script type="text/javascript">
@@ -110,6 +128,7 @@
             success: function(data){
               $("#daytimeTable").find("tr:gt(0)").remove();
               $("#daytimeTable").find("tbody").append(data);
+              $('.pieChart').trigger('click');
             },
             failure: function(){
               alert("Unable to load the today values.");
@@ -124,13 +143,14 @@
       var todayMonthName = months[toDayDate.getMonth()];
       $("#currentMonth").html(todayMonthName);
       var id = 0;
+	  setTimeout(function() { $('.pieChart').trigger('click'); },10);	
       $("#add").click(function () {
         id++;
         var master = $(this).parents("#daytimeTable");
         var table = document.getElementById("daytimeTable");
         var noOfRows = table.rows.length;
         var rowHtml = "<tr id='lastRow'>\n\
-                          <td><input type='hidden' id='hiddenId' name='hiddenId' /><select id='project"+ noOfRows +"' name='project' class='project'><option value=''>Please Select</option><option value='1'>Option one</option><option value='2'>Option two</option></select></td>\n\
+                          <td><input type='hidden' id='hiddenId' name='hiddenId' /><select id='project"+ noOfRows +"' name='project' class='project'><option value=''>Please Select</option> <% Project.find_each do |p|%> <option value='<%=p.id%>'><%=p.name%></option><%end%></select></td>\n\
                           <td><input id='today"+ noOfRows +"' name='today' type='text' placeholder='Hours' class='today form-control'/></td>\n\
                           <td><input type='button' class='btn btn-success save-btn' id='save' value='Save'></input></td>\n\
                           <td><input type='button' class='btn btn-large btn-danger remove-btn' id='remove' value='Remove'></input></td>                     \n\
@@ -171,19 +191,44 @@
                   ip1.attr('disabled',true);
                   sp1.attr('disabled',true);
                   input.attr('value','Edit');
+                  $('.pieChart').trigger('click');
                 }
               });
             }
           }
         });
-
         $(".remove-btn").last().click(function(){
+<<<<<<< HEAD
           input =  $(this);
           var hd1 = input.parent().prev().prev().prev().children('input').val();
           var svC = confirm("Are you sure want to delete?");
           if(svC == true){
             if(hd1 == '' || hd1== "" || hd1 == undefined){
               input.parents("tr").remove();
+=======
+            input =  $(this);
+            var hd1 = input.parent().prev().prev().prev().children('input').val();            
+            var svC = confirm("Are you sure want to delete?");
+            if(svC == true){
+              if(hd1 == '' || hd1== "" || hd1 == undefined){
+                input.parents("tr").remove();
+              }
+              else{
+                dataStr = "id="+hd1;
+                 $.ajax({
+                  method: 'POST',
+                  url: '/deleteDayTimesheets',
+                  data : dataStr,
+                  success: function(dt){
+                    alert(dt.msg);
+                    $('.pieChart').trigger('click');
+                    if(dt.deleted == true)
+                      input.parents("tr").remove();
+                      
+                  }
+                });
+              }
+>>>>>>> 36b479f87ee3ed93322a34b683a1c05b89ae208e
             }
             else{
               dataStr = "id="+hd1;
@@ -225,6 +270,7 @@
 
 
       });
+      
       $(".save-btn").click(function(){
         input =  $(this);
         var todayValue = $("#txtDate").val();
@@ -259,6 +305,7 @@
                 ip1.attr('disabled',true);
                 sp1.attr('disabled',true);
                 input.attr('value','Edit');
+                $('.pieChart').trigger('click');
               }
             });
           }
@@ -266,6 +313,8 @@
         
       });
       $(".remove-btn").click(function(){
+                  $(".pieChart").click();
+
         input =  $(this);
         var hd1 = input.parent().prev().prev().prev().children('input').val();
         console.log(hd1);
@@ -284,6 +333,7 @@
                 alert(dt.msg);
                 if(dt.deleted == true)
                   input.parents("tr").remove();
+                  $('.pieChart').trigger('click');
               }
             });
           }
@@ -311,6 +361,7 @@
             }
           }
         });
+<<<<<<< HEAD
         if(exist == true){
           $(this).val($(this).data("lastValue"));
         }
@@ -319,7 +370,38 @@
         }
       });
     });
+=======
+        
+        
+        $('.pieChart').click(function() {
+        	var todayValue = $("#txtDate").val();
+			dataStr = "today=" + todayValue;
+             $.ajax({
+              method: 'GET',
+              data: dataStr,
+              url: '/createPieChart',
+              dateType: 'json',
+              success: function(pieHash){ 
+              var newPieHash = [];
+              $.each(pieHash,function( key, value ) {
+              		newPieHash.push([key, value]);
+              		;});
+              	new Chartkick.PieChart("chart-1", newPieHash);
+              		}
+           		 });
+ 				});
+ 				
+
+});
+
+
+
+
+  
+
+>>>>>>> 36b479f87ee3ed93322a34b683a1c05b89ae208e
 
 
   </script>
-<% end %>
+  
+  <%end%>
