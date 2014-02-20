@@ -5,7 +5,6 @@ class WelcomeController < ApplicationController
     time = Time.new
     to_day = time.strftime("%m/%d/%Y")
     @todayRecs = TimeTable.where(:date => to_day)
-    @initialPieChart = createPieChart
   end
 
   def weekFunc
@@ -124,11 +123,13 @@ class WelcomeController < ApplicationController
 end
 
 	def createPieChart
-			puts "********************************PIE CHART******************************"
-    puts params.inspect
-		  pieHash = {}
-		unless @todayRecs.nil?
-			@todayRecs.each do |t|
+		   puts "********************************PIE CHART******************************"
+   		   puts params.inspect
+		   pieHash = {}        
+    	@pieRow = TimeTable.where(:date => params[:today],:user_id => session[:user_id] )
+
+		unless @pieRow.nil?
+			@pieRow.each do |t|
 				project = Project.find(t.project_id)
 				if pieHash.has_key?(project.name)
 					i = pieHash[project.name]
@@ -138,7 +139,9 @@ end
 				end
 			end
 		end
-		return pieHash		
+			@initialPieHash = pieHash.to_json
+			render :json => pieHash.to_json
+		
 		
 	end
 

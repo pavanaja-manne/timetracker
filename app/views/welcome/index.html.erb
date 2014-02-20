@@ -90,9 +90,7 @@
 
 
 <!-- Pie Chart -->
-	<div class="pieChart"> <%= pie_chart(@initialPieChart)%>
-	
-	</div>
+		<div class="pieChart"><div id="chart-1" style="height: 300px;"></div></div>
 
 
   <!-- Script for day functionality -------------------------------------------------------------------- --->
@@ -115,6 +113,7 @@
             success: function(data){
               $("#daytimeTable").find("tr:gt(0)").remove();
               $("#daytimeTable").find("tbody").append(data);
+              $('.pieChart').trigger('click');
             },
             failure: function(){
               alert("Unable to load the today values.");
@@ -129,6 +128,7 @@
       var todayMonthName = months[toDayDate.getMonth()];
       $("#currentMonth").html(todayMonthName);
       var id = 0;
+	  setTimeout(function() { $('.pieChart').trigger('click'); },10);	
       $("#add").click(function () {
         id++;
         var master = $(this).parents("#daytimeTable");
@@ -176,6 +176,7 @@
                   ip1.attr('disabled',true);
                   sp1.attr('disabled',true);
                   input.attr('value','Edit');
+                  $('.pieChart').trigger('click');
                 }
               });
             }
@@ -197,8 +198,10 @@
                   data : dataStr,
                   success: function(dt){
                     alert(dt.msg);
+                    $('.pieChart').trigger('click');
                     if(dt.deleted == true)
                       input.parents("tr").remove();
+                      
                   }
                 });
               }
@@ -264,6 +267,7 @@
                 ip1.attr('disabled',true);
                 sp1.attr('disabled',true);
                 input.attr('value','Edit');
+                $('.pieChart').trigger('click');
               }
             });
           }
@@ -291,6 +295,7 @@
                 alert(dt.msg);
                 if(dt.deleted == true)
                   input.parents("tr").remove();
+                  $('.pieChart').trigger('click');
               }
             });
           }
@@ -326,17 +331,29 @@
           }
         });
         
+        
         $('.pieChart').click(function() {
+        	var todayValue = $("#txtDate").val();
+			dataStr = "today=" + todayValue;
+             $.ajax({
+              method: 'GET',
+              data: dataStr,
+              url: '/createPieChart',
+              dateType: 'json',
+              success: function(pieHash){ 
+              var newPieHash = [];
+              $.each(pieHash,function( key, value ) {
+              		newPieHash.push([key, value]);
+              		;});
+              	new Chartkick.PieChart("chart-1", newPieHash);
+              		}
+           		 });
+ 				});
+ 				
 
- 			$.ajax({
- 			method: 'GET',
-            url: '/createPieChart',
-            data: dataStr,
-            datatype: 'json',
-            success: function(dt){ alert(dt); },
-            });
- 		});
 });
+
+
 
 
   
