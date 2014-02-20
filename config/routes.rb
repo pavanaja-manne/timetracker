@@ -20,9 +20,10 @@ MusicFeedApp::Application.routes.draw do
     post '/saveTimeSheets', to: 'welcome#saveTime'
     post '/saveDayTimesheets', to: 'welcome#saveDayTime'
     get 'welcome/weekFunc', to: 'welcome#weekFunc'
-    
+    get '/createPieChart', to: 'welcome#createPieChart'
   
     resources :users
+    
 # Example of regular route:
   #   get 'products/:id' => 'catalog#view'
 

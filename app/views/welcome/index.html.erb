@@ -76,7 +76,6 @@
                     <td>
                       <input type="button" class="btn btn-large btn-danger remove-btn" id="remove" value="Remove"></input>
                     </td>
-                    <td> Hello <td>
                   </tr>
                 <% end %>
               </tbody>
@@ -87,23 +86,13 @@
       </div>
     </div>
   </div>
+  
+
 
 <!-- Pie Chart -->
-<% projectHash = {} %>
-
-<% unless @todayRecs.empty? %>
- 	<% @todayRecs.each do |t| %>
- 		<% project = Project.find(t.project_id) %>
- 		<% if projectHash.has_key?(project.name)%>
- 			<% i = projectHash[project.name] %>
- 			<% projectHash[project.name] = i + t.hours %>
- 		<%else%>
- 			<% projectHash[project.name] = t.hours %>
- 		<%end%>
- 	<%end%>
-<% end %> 	
-
-<%= pie_chart(projectHash) %>
+	<div class="pieChart"> <%= pie_chart(@initialPieChart)%>
+	
+	</div>
 
 
   <!-- Script for day functionality -------------------------------------------------------------------- --->
@@ -146,7 +135,7 @@
         var table = document.getElementById("daytimeTable");
         var noOfRows = table.rows.length;
         var rowHtml = "<tr id='lastRow'>\n\
-                          <td><input type='hidden' id='hiddenId' name='hiddenId' /><select id='project"+ noOfRows +"' name='project' class='project'><option value=''>Please Select</option><option value='1'>Option one</option><option value='2'>Option two</option></select></td>\n\
+                          <td><input type='hidden' id='hiddenId' name='hiddenId' /><select id='project"+ noOfRows +"' name='project' class='project'><option value=''>Please Select</option> <% Project.find_each do |p|%> <option value='<%=p.id%>'><%=p.name%></option><%end%></select></td>\n\
                           <td><input id='today"+ noOfRows +"' name='today' type='text' placeholder='Hours' class='today form-control'/></td>\n\
                           <td><input type='button' class='btn btn-success save-btn' id='save' value='Save'></input></td>\n\
                           <td><input type='button' class='btn btn-large btn-danger remove-btn' id='remove' value='Remove'></input></td>                     \n\
@@ -192,7 +181,6 @@
             }
           }
         });
-
         $(".remove-btn").last().click(function(){
             input =  $(this);
             var hd1 = input.parent().prev().prev().prev().children('input').val();            
@@ -241,6 +229,7 @@
 
 
       });
+      
       $(".save-btn").click(function(){
         input =  $(this);
         var todayValue = $("#txtDate").val();
@@ -282,6 +271,8 @@
         
       });
       $(".remove-btn").click(function(){
+                  $(".pieChart").click();
+
         input =  $(this);
         var hd1 = input.parent().prev().prev().prev().children('input').val();
         console.log(hd1);
@@ -334,7 +325,21 @@
             $(this).data("lastValue",$(this).val());
           }
         });
-    });
+        
+        $('.pieChart').click(function() {
+
+ 			$.ajax({
+ 			method: 'GET',
+            url: '/createPieChart',
+            data: dataStr,
+            datatype: 'json',
+            success: function(dt){ alert(dt); },
+            });
+ 		});
+});
+
+
+  
 
 
 
