@@ -1,9 +1,12 @@
 MusicFeedApp::Application.routes.draw do
+  mount RailsAdmin::Engine => '/admin', :as => 'rails_admin'
+  devise_for :users
+  
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 
   # You can have the root of your site routed with "root"
-    get 'welcome/index', to: 'welcome#index'
+    get '/welcome/index', to: 'welcome#index'
     root 'sessions#new'
     resources :sessions, only: [:new, :create, :destroy]
     get '/load_today_data', to: 'welcome#loadToDay'
@@ -20,6 +23,7 @@ MusicFeedApp::Application.routes.draw do
     post '/saveTimeSheets', to: 'welcome#saveTime'
     post '/saveDayTimesheets', to: 'welcome#saveDayTime'
     get 'welcome/weekFunc', to: 'welcome#weekFunc'
+    post '/users', to: 'devise/registrations#create'
     
   
     resources :users

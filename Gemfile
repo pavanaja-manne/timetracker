@@ -5,7 +5,7 @@ gem 'rails', '~>4.0.0'
 
 gem 'dalli'
 gem 'simple_form'
-gem 'bootstrap-sass', '2.0.4'
+gem 'bootstrap-sass', '2.3'
 gem 'bcrypt-ruby', '3.1.2', platform: "ruby"
 gem 'dragonfly', '0.9.12'
 gem 'carrierwave'
@@ -29,12 +29,12 @@ end
 # Gems used only for assets and not required
 # in production environments by default.
 
-  gem 'sass-rails'
+  gem 'sass-rails', github: 'rails/sass-rails'
   gem 'coffee-rails'
   gem 'uglifier'
 
-gem 'jquery-rails', '2.0.2'
-
+gem 'jquery-rails', '~> 3.0'
+gem 'rails_admin', '~> 0.5.0'
 
 gem 'yaml_db'
 group :production do
@@ -58,3 +58,5 @@ gem "airbrake"
 # Deploy
 gem 'capistrano'
 gem 'rvm-capistrano'
+
+gem "devise"

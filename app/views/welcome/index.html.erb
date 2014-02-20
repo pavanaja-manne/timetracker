@@ -1,9 +1,9 @@
 <% if session[:user_id] %>
   <%@user = User.find(session[:user_id]) %>
 
-  <div class="row-fluid">
+  <div class="row-fluid" style="height:200px;">
     <header class="span12 hero-unit">
-      <h2>Hi <%= @user.name %>, Please Enter The Time Sheets For <span id="currentMonth"/> </h2>
+      <h3>Hi <%= @user.name %>, Please Enter The Time Sheets For <span id="currentMonth"/> </h3>
     </header>
   </div>
 
@@ -11,9 +11,20 @@
   <!-- Log out Button-->
   <div class="container">
     <!-- Log out button -->
-    <div class="pull-right"><h5> <a href="/signout">Log Out</a></h5></div>
+    <div class="pull-right"><h5> <a href="/signout"> <button type="button" class="btn btn-info">Log Out</button></a></h5></div>
   </div>
 
+  <div class="container">
+    <div class="row">
+      <div class="span4">
+        <ul class="nav nav-pills">
+          <li class="active">
+            <a href="/welcome/weekFunc">Week View</a></li>
+          <li><a href="#">Verify Reports</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
 
   <!-- **************************************************************************** -->
   <!-- DAY FUNCTIONALITY -->
@@ -83,7 +94,7 @@
   <script type="text/javascript">
     $(document).ready(function(){
       $('.project').each(function() {
-          $(this).data('lastValue', $(this).val());
+        $(this).data('lastValue', $(this).val());
       });
       var months = [ "January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December" ];
@@ -167,50 +178,50 @@
         });
 
         $(".remove-btn").last().click(function(){
-            input =  $(this);
-            var hd1 = input.parent().prev().prev().prev().children('input').val();            
-            var svC = confirm("Are you sure want to delete?");
-            if(svC == true){
-              if(hd1 == '' || hd1== "" || hd1 == undefined){
-                input.parents("tr").remove();
-              }
-              else{
-                dataStr = "id="+hd1;
-                 $.ajax({
-                  method: 'POST',
-                  url: '/deleteDayTimesheets',
-                  data : dataStr,
-                  success: function(dt){
-                    alert(dt.msg);
-                    if(dt.deleted == true)
-                      input.parents("tr").remove();
-                  }
-                });
+          input =  $(this);
+          var hd1 = input.parent().prev().prev().prev().children('input').val();
+          var svC = confirm("Are you sure want to delete?");
+          if(svC == true){
+            if(hd1 == '' || hd1== "" || hd1 == undefined){
+              input.parents("tr").remove();
+            }
+            else{
+              dataStr = "id="+hd1;
+              $.ajax({
+                method: 'POST',
+                url: '/deleteDayTimesheets',
+                data : dataStr,
+                success: function(dt){
+                  alert(dt.msg);
+                  if(dt.deleted == true)
+                    input.parents("tr").remove();
+                }
+              });
+            }
+          }
+        });
+        $(".project").last().change(function(){
+          select_box_old_val = $(this).data("lastValue");
+          select_box_new_val = $(this).val();
+          exist = false;
+          console.log(select_box_old_val);
+          $('.project').not(this).each(function(){
+            if(exist == false){
+              console.log(select_box_new_val);
+              if($(this).val() == select_box_new_val){
+                //select_box.val(select_box.data("lastVal"));
+                exist = true;
+                alert("Hours are already logged for this project!!, Please Edit that for changes");
               }
             }
           });
-          $(".project").last().change(function(){
-                select_box_old_val = $(this).data("lastValue");
-                select_box_new_val = $(this).val();
-                exist = false;
-                console.log(select_box_old_val);
-                $('.project').not(this).each(function(){
-                  if(exist == false){
-                    console.log(select_box_new_val);
-                    if($(this).val() == select_box_new_val){
-                      //select_box.val(select_box.data("lastVal"));
-                      exist = true;
-                      alert("There is already timesheet for the selected project.You can update that one");
-                    }
-                  }
-                });
-                if(exist == true){
-                  $(this).val($(this).data("lastValue"));
-                }
-                else{
-                  $(this).data("lastValue",$(this).val());
-                }
-              });
+          if(exist == true){
+            $(this).val($(this).data("lastValue"));
+          }
+          else{
+            $(this).data("lastValue",$(this).val());
+          }
+        });
 
 
       });
@@ -265,7 +276,7 @@
           }
           else{
             dataStr = "id="+hd1;
-             $.ajax({
+            $.ajax({
               method: 'POST',
               url: '/deleteDayTimesheets',
               data : dataStr,
@@ -279,34 +290,34 @@
         }
         
       });
-      <%#*// Remove button functionality%>
-      <%#*$(document).on("click", "#remove", function () {%>
-        <%#*$(this).parents("tr").remove();%>
-      <%#*});%>
+  <%#*// Remove button functionality%>
+  <%#*$(document).on("click", "#remove", function () {%>
+  <%#*$(this).parents("tr").remove();%>
+  <%#*});%>
 
 
-        $(".project").change(function(){
-          select_box_old_val = $(this).data("lastValue");
-          select_box_new_val = $(this).val();
-          exist = false;
-          console.log(select_box_old_val);
-          $('.project').not(this).each(function(){
-            if(exist == false){
-              console.log(select_box_new_val);
-              if($(this).val() == select_box_new_val){
-                //select_box.val(select_box.data("lastVal"));
-                exist = true;
-                alert("There is already timesheet for the selected project.You can update that one");
-              }
+      $(".project").change(function(){
+        select_box_old_val = $(this).data("lastValue");
+        select_box_new_val = $(this).val();
+        exist = false;
+        console.log(select_box_old_val);
+        $('.project').not(this).each(function(){
+          if(exist == false){
+            console.log(select_box_new_val);
+            if($(this).val() == select_box_new_val){
+              //select_box.val(select_box.data("lastVal"));
+              exist = true;
+              alert("There is already timesheet for the selected project.You can update that one");
             }
-          });
-          if(exist == true){
-            $(this).val($(this).data("lastValue"));
-          }
-          else{
-            $(this).data("lastValue",$(this).val());
           }
         });
+        if(exist == true){
+          $(this).val($(this).data("lastValue"));
+        }
+        else{
+          $(this).data("lastValue",$(this).val());
+        }
+      });
     });
 
 
